@@ -1,16 +1,10 @@
-//
-//  asd.hpp
-//  asnjandsfj
-//
-//  Created by Andrea Iannaccone on 13/03/25.
-//
 
 #ifndef asd_hpp
 #define asd_hpp
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
-#include <cstring>
 using namespace std;
 
 class Node{
@@ -24,20 +18,22 @@ public:
     Node(const int &chiave, const string &valore): key(chiave), left(nullptr), right(nullptr), parent(nullptr){
         this->value = valore;
     }
-    int getKey(){return key;}
+    int getKey() const{return key;}
     Node *&getLeftNode(){return left;}
     Node *&getRightNode(){return right;}
     Node *&getParentNode(){return parent;}
     void setParentNode(Node *newNode){this->parent = newNode;}
     void setRightNode(Node *newNode){this->right = newNode;}
+    void setLeftNode(Node *newNode){this->left = newNode;}
 };
 
 class ABR {
     Node *root;
-    bool isEmpty(Node *ptr){
+    ofstream file;
+    static bool isEmpty(const Node *ptr){
         return ptr == nullptr;
     }
-    void insertH(Node **ptr, const int &chiave, const string valore){
+    void static insertH(Node **ptr, const int &chiave, const string &valore){
         if (isEmpty(*ptr)){
             *ptr = new Node(chiave,valore);
         }
@@ -53,7 +49,11 @@ class ABR {
     
     void preOrderH(Node *ptr){
         if (!isEmpty(ptr)){
-            std::cout<<ptr->getKey();
+            if (file.is_open()) {
+                file<<ptr->getKey();
+            }
+            else
+                std::cout<<ptr->getKey();
             preOrderH(ptr->getLeftNode());
             preOrderH(ptr->getRightNode());
         }
@@ -61,7 +61,10 @@ class ABR {
     void inOrderH(Node *ptr){
         if (!isEmpty(ptr)){
             inOrderH(ptr->getLeftNode());
-            std::cout<<ptr->getKey();
+            if (file.is_open())
+                file<<ptr->getKey();
+            else
+                std::cout<<ptr->getKey();
             inOrderH(ptr->getRightNode());
         }
     }
@@ -69,29 +72,32 @@ class ABR {
         if(!isEmpty(ptr)){
             postOrderH(ptr->getLeftNode());
             postOrderH(ptr->getRightNode());
-            std::cout<<ptr->getKey();
+            if (file.is_open())
+                file<<ptr->getKey();
+            else
+                std::cout<<ptr->getKey();
         }
     }
-    int getTreeHeightH(Node *ptr){
+    int static getTreeHeightH(Node *ptr){
         if (isEmpty(ptr)) {
             return 0;
         }
         return 1 + getTreeHeightH(ptr->getLeftNode()) + getTreeHeightH(ptr->getRightNode());
     }
     
-    Node *getTreeMinimumH(Node *ptr){
+    static Node *getTreeMinimumH(Node *ptr){
         if (isEmpty(ptr->getLeftNode())) {
             return ptr;
         }
         return ptr->getLeftNode();
     }
-    Node *getTreeMaximumH(Node *ptr){
+    static Node *getTreeMaximumH(Node *ptr){
         if (isEmpty(ptr->getRightNode())) {
             return ptr;
         }
         return ptr->getRightNode();
     }
-    Node* searcH(Node *current, const int &key){
+    static Node* searchH(Node *current, const int &key){
         if (isEmpty(current)) {
             return nullptr;
         }
@@ -108,7 +114,7 @@ class ABR {
         }
     }
     
-    int sumLeavesH(Node *ptr){
+    static int sumLeavesH(Node *ptr){
         if (isEmpty(ptr))
             return 0;
         if (isEmpty(ptr->getLeftNode()) && isEmpty(ptr->getRightNode())) {
@@ -133,31 +139,37 @@ class ABR {
     
 public:
     ABR():root(nullptr){}
-    ABR(Node *node):root(node){}
+    explicit ABR(Node *node):root(node){}
+    explicit ABR(const string &filename):root(nullptr){
+        file.open(filename, ios::app);
+    }
+    ABR(const string &filename, Node *node): root(node) {
+        file.open(filename, ios::app);
+    }
     void insert(const int &chiave,const string &valore){
         insertH(&root, chiave, valore);
     }
     void preOrder(){
         preOrderH(root);
     }
-    void inOrder(){
+    void inOrder() {
         inOrderH(root);
     }
-    void postOrder(){
+    void postOrder() {
         postOrderH(root);
     }
-    int getTreeHeight(){
+    int getTreeHeight() const{
         return getTreeHeightH(root);
     }
-    int getTreeMinimum(){
+    int getTreeMinimum() const {
         Node *returnNode = getTreeMinimumH(root);
         return returnNode->getKey();
     }
-    int getTreeMaximum(){
+    int getTreeMaximum() const {
         Node *returnNode = getTreeMinimumH(root);
         return returnNode->getKey();
     }
-    int getSuccessorOf(Node *x){
+    static int getSuccessorOf(Node *x){
         if (!isEmpty(x->getRightNode()))
             return getTreeMinimumH(x->getRightNode())->getKey();
         Node *y = nullptr;
@@ -169,7 +181,8 @@ public:
         
         return y->getKey();
     }
-    int getPredecessorOf(Node *x){
+
+    static int getPredecessorOf(Node *x){
         if (!isEmpty(x->getLeftNode()))
             return getTreeMinimumH(x->getLeftNode())->getKey();
         Node *y = nullptr;
@@ -181,8 +194,8 @@ public:
         return y->getKey();
     }
     
-    int search(const int& value){
-        if (searcH(root, value) == nullptr) {
+    int search(const int& value) const {
+        if (searchH(root, value) == nullptr) {
             return -1;
         }
         return 1;
@@ -212,16 +225,16 @@ public:
 
 class listNode {
 public:
-    listNode(const int &valore):data(valore),next(nullptr){}
+    explicit listNode(const int &valore):data(valore),next(nullptr){}
     ~listNode();
-    int get_data(){
+    int get_data() const{
         return data;
     }
     void set_data(int valore){
         this->data=valore;
     }
     
-    listNode* get_next(){
+    listNode* get_next() const {
         return next;
     }
     
