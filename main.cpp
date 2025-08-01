@@ -1,14 +1,13 @@
 //
 //  asd.cpp
-//  asnjandsfj
 //
-//  Created by Andrea Iannaccone on 13/03/25.
+//
+//  Created by Andrea on 13/03/25.
 //
 
 #include "asd.hpp"
 
 int main(){
-    ABR abr;
-    
-    return 0;
+    LCS lcs("abbaagadf", "aabbgf");
+    cout << lcs.calculate();
 }
