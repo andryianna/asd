@@ -1,2 +1,0 @@
-5,Pluto
-10,Pippo
