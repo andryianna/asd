@@ -1,4 +1,4 @@
-Nome = hashC
+Nome = NomeCognome
 
 CXX ?= g++
 
