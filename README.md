@@ -3,7 +3,7 @@
 - Heap con coda di priorità min o max
 - Grafi con BFS, Ordinamento Topologico, Componenti Fortemente Connesse
 - Tabelle Hash ad Indirizzamento aperto e con Concatenamento
-- Albero Binario di Ricerca con inserimento, visite e successori
+- Albero Binario di Ricerca con inserimento, visite e successori e albero di Huffman con codifica e decodifica
 
 #Istruzioni di compilazione con g++ e cmake gia installati su ambiente Linux Ubuntu/Mint*
 
