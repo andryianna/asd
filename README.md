@@ -1,4 +1,4 @@
-#Algoritmi per esame di Algoritmi e Strutture Dati 12 CFU - Prova C++ UniParthenope
+# Algoritmi per esame di Algoritmi e Strutture Dati 12 CFU - Prova C++ UniParthenope
 
 - Heap con coda di priorità min o max
 - Grafi con BFS, Ordinamento Topologico, Componenti Fortemente Connesse
