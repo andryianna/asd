@@ -29,8 +29,8 @@ public:
 
 class Grafo {
     bool directed;
-    unordered_map<int, Vertice *> vertici;
-    unordered_map<Vertice *, vector<Arco>> adj;
+    std::unordered_map<int, Vertice *> vertici;
+    std::unordered_map<Vertice *, std::vector<Arco>> adj;
 
     void resetta() {
         for (auto v: vertici) {
@@ -42,7 +42,7 @@ class Grafo {
         }
     }
 
-    void dfs_visit1(Vertice *u, stack<Vertice *> &s, int &time) {
+    void dfs_visit1(Vertice *u, std::stack<Vertice *> &s, int &time) {
         u->color = GRAY;
         u->inizio = ++time;
         for (auto arco: adj.at(u)) {
@@ -57,7 +57,7 @@ class Grafo {
         u->fine = ++time;
     }
 
-    void dfs_visit2(Vertice *u, ofstream &output, int &time) {
+    void dfs_visit2(Vertice *u, std::ofstream &output, int &time) {
         u->color = GRAY;
         u->inizio = ++time;
 
@@ -74,7 +74,7 @@ class Grafo {
         u->fine = ++time;
     }
 
-    bool dfs_visit(Vertice *u, stack<Vertice *> &s, int &time) {
+    bool dfs_visit(Vertice *u, std::stack<Vertice *> &s, int &time) {
         u->color = GRAY;
         u->inizio = ++time;
         for (auto arco: adj.at(u)) {
@@ -94,7 +94,7 @@ class Grafo {
     }
 
     Grafo *transpose() {
-        auto gr = new Grafo(true);
+        auto gr = new Grafo(this->directed);
         for (auto v: vertici)
             gr->addVertice(new Vertice(v.first));
         for (auto arco: adj) {
@@ -108,6 +108,26 @@ class Grafo {
         }
         return gr;
     }
+
+    void initializeSingleSource(Vertice &s) {
+        for (auto it: vertici) {
+            auto v = it.second;
+            if (v == getVertice(s.key)) continue;
+            v->parent = nullptr;
+            v->distanza = INT_MAX;
+        }
+        s.parent = nullptr;
+        s.distanza = 0;
+    }
+
+    void relax(Vertice &u, Vertice &v, int w) {
+        if (u.distanza == INT_MAX) return;
+        if (w < 0 && v.distanza == INT_MAX) return;
+        if (v.distanza > u.distanza + w) {
+            v.distanza = u.distanza + w;
+            v.parent = &u;
+        }
+    }
 public:
     void addVertice(Vertice *v) {
         if (vertici.find(v->key) != vertici.end())
@@ -117,7 +137,9 @@ public:
     }
 
     Vertice *getVertice(int key) {
-        return vertici.find(key) != vertici.end() ? vertici.find(key)->second : nullptr; 
+        auto it = vertici.find(key);
+        if (it == vertici.end()) return nullptr;
+        return it->second;
     }
 
     void addArco(int from, int to,int peso) {
@@ -130,11 +152,11 @@ public:
         }
     }
 
-    Grafo(bool directed): directed(directed) {}
-    Grafo(const string &filename, bool directed): directed(directed) {
-        ifstream file(filename);
+    Grafo(bool directed = true): directed(directed) {}
+    Grafo(const std::string &filename, bool directed = true): directed(directed) {
+        std::ifstream file(filename);
         if (!file) {
-            cerr << "Error opening file " << filename << endl;
+            std::cerr << "Error opening file " << filename << std::endl;
             return;
         }
         int kV,kA;
@@ -148,18 +170,18 @@ public:
         file.close();
     }
 
-    void BFS(Vertice *src,const string &filename) {
-        ofstream file(filename);
+    void BFS(Vertice *src,const std::string &filename) {
+        std::ofstream file(filename);
         auto s = getVertice(src->key);
         if (!file) {
-            std::cerr << "Error opening file " << filename << endl;
+            std::cerr << "Error opening file " << filename << std::endl;
             return;
         }
         resetta();
         s->color = GRAY;
         s->distanza = 0;
         s->parent = nullptr;
-        queue<Vertice *> bfs;
+        std::queue<Vertice *> bfs;
         bfs.push(s);
         while (!bfs.empty()) {
             auto u = bfs.front();
@@ -180,10 +202,10 @@ public:
         file.close();
     }
 
-    void SCC(const string &filename) {
-        ofstream file(filename);
+    void SCC(const std::string &filename) {
+        std::ofstream file(filename);
         resetta();
-        stack<Vertice *> s;
+        std::stack<Vertice *> s;
         int time = 0;
         for (auto v: vertici)
             if (v.second->color == WHITE)
@@ -199,22 +221,107 @@ public:
         file.close();
     }
 
-    void dfs_topo(const string &filename) {
-        ofstream file(filename);
-        stack<Vertice *> s;
+    void dfs_topo(const std::string &filename) {
+        std::ofstream file(filename);
+        std::stack<Vertice *> s;
         resetta();
         int time = 0;
         for (auto v: vertici)
             if (v.second->color == WHITE && !dfs_visit(v.second,s,time))
                 return;
-        file << "Ordinamento topologico " << endl;
+        file << "Ordinamento topologico " << std::endl;
         while (!s.empty()) {
             auto v = s.top();
             s.pop();
             file << v->key << " ";
         }
     }
+
+    struct CmpDist {
+        bool operator()(const std::pair<int, Vertice *> &a,
+                        const std::pair<int, Vertice *> &b) const {
+            return a.first > b.first; // min-heap sulla distanza
+        }
+    };
+
+    std::vector<Vertice *> djkstra(Vertice *src) {
+        std::vector<Vertice *> ordineVisita;
+        if (!src) return ordineVisita;
+
+        Vertice *s = getVertice(src->key);
+        if (!s) return ordineVisita;
+
+        initializeSingleSource(*s);
+
+        std::priority_queue<std::pair<int, Vertice *>,
+                            std::vector<std::pair<int, Vertice *>>,
+                            CmpDist> pq;
+        pq.push({0, s});
+
+        while (!pq.empty()) {
+            auto [dist, u] = pq.top();
+            pq.pop();
+
+            if (dist != u->distanza || u->distanza == INT_MAX) continue;
+
+            ordineVisita.push_back(u);
+
+            for (const auto &arco : adj[u]) {
+                Vertice *v = arco.to;
+                if (!v || u->distanza == INT_MAX) continue;
+
+                if (v->distanza > u->distanza + arco.peso) {
+                    v->distanza = u->distanza + arco.peso;
+                    v->parent = u;
+                    pq.push({v->distanza, v});
+                }
+            }
+        }
+
+        return ordineVisita;
+    }
+
+    bool bellmanFord(Vertice *src) {
+        auto s = getVertice(src->key);
+        initializeSingleSource(*s);
+        for (size_t i = 0; i < vertici.size() - 1; ++i) {
+            bool aggiornato = false;
+            for (const auto &pair : adj) {
+                Vertice *u = pair.first;
+                if (!u || u->distanza == INT_MAX) continue;
+
+                for (const auto &arco : pair.second) {
+                    auto v = arco.to;
+                    if (!v) continue;
+
+                    int oldDist = v->distanza;
+                    relax(*u, *v, arco.peso);
+                    if (v->distanza != oldDist) {
+                        aggiornato = true;
+                    }
+                }
+            }
+            if (!aggiornato) break;
+        }
+
+        for (const auto &pair : adj) {
+            auto u = pair.first;
+            if (!u || u->distanza == INT_MAX) continue;
+
+            for (const auto &arco : pair.second) {
+                auto v = arco.to;
+                if (!v) continue;
+
+                if (v->distanza > u->distanza + arco.peso) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 };
+
 
 int main(void) {
     Grafo gr("Test/Grafi/input.txt",true);
